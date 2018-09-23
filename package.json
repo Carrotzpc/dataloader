@@ -1,7 +1,7 @@
 {
   "name": "@switchdog/dataloader",
-  "version": "1.5.0-beta.1",
-  "description": "A data loading utility to reduce requests to a backend via batching and caching.",
+  "version": "1.5.0",
+  "description": "A data loading utility to reduce requests to a backend via batching and caching. Add load options support.",
   "contributors": [
     "Lee Byron <lee@leebyron.com> (http://leebyron.com/)",
     "Daniel Schafer <dschafer@fb.com>",
