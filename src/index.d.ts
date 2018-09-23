@@ -24,7 +24,7 @@ declare class DataLoader<K, V> {
   /**
    * Loads a key, returning a `Promise` for the value represented by that key.
    */
-  load(key: K): Promise<V>;
+  load(key: K, loadOptions: any): Promise<V>;
 
   /**
    * Loads multiple keys, promising an array of values:
@@ -39,7 +39,7 @@ declare class DataLoader<K, V> {
    *     ]);
    *
    */
-  loadMany(keys: K[]): Promise<V[]>;
+  loadMany(keys: K[], loadOptions: any): Promise<V[]>;
 
   /**
    * Clears the value at `key` from the cache, if it exists. Returns itself for
@@ -72,7 +72,7 @@ declare namespace DataLoader {
 
   // A Function, which when given an Array of keys, returns a Promise of an Array
   // of values or Errors.
-  export type BatchLoadFn<K, V> = (keys: K[]) => Promise<Array<V | Error>>;
+  export type BatchLoadFn<K, V> = (keys: K[], loadOptions: any) => Promise<Array<V | Error>>;
 
   // Optionally turn off batching or caching or provide a cache key function or a
   // custom cache instance.

@@ -10,8 +10,8 @@
 
 // A Function, which when given an Array of keys, returns a Promise of an Array
 // of values or Errors.
-export type BatchLoadFn<K, V> =
-  (keys: $ReadOnlyArray<K>) => Promise<$ReadOnlyArray<V | Error>>;
+export type BatchLoadFn<K, V> = (keys: $ReadOnlyArray<K>, loadOptions: any)
+  => Promise<$ReadOnlyArray<V | Error>>;
 
 // Optionally turn off batching or caching or provide a cache key function or a
 // custom cache instance.
@@ -56,6 +56,7 @@ class DataLoader<K, V> {
     this._options = options;
     this._promiseCache = getValidCacheMap(options);
     this._queue = [];
+    this._loadOptions = {};
   }
 
   // Private
@@ -63,11 +64,12 @@ class DataLoader<K, V> {
   _options: ?Options<K, V>;
   _promiseCache: CacheMap<K, Promise<V>>;
   _queue: LoaderQueue<K, V>;
+  _loadOptions: any;
 
   /**
    * Loads a key, returning a `Promise` for the value represented by that key.
    */
-  load(key: K): Promise<V> {
+  load(key: K, loadOptions: any): Promise<V> {
     if (key === null || key === undefined) {
       throw new TypeError(
         'The loader.load() function must be called with a value,' +
@@ -94,6 +96,9 @@ class DataLoader<K, V> {
     var promise = new Promise((resolve, reject) => {
       // Enqueue this Promise to be dispatched.
       this._queue.push({ key, resolve, reject });
+      // Different from key, take the loadOption of the last load as the
+      // standard.
+      this._loadOptions = loadOptions;
 
       // Determine if a dispatch of this queue should be scheduled.
       // A single dispatch should be scheduled per queue at the time when the
@@ -130,14 +135,14 @@ class DataLoader<K, V> {
    *     ]);
    *
    */
-  loadMany(keys: $ReadOnlyArray<K>): Promise<Array<V>> {
+  loadMany(keys: $ReadOnlyArray<K>, loadOptions: any): Promise<Array<V>> {
     if (!Array.isArray(keys)) {
       throw new TypeError(
         'The loader.loadMany() function must be called with Array<key> ' +
         `but got: ${keys}.`
       );
     }
-    return Promise.all(keys.map(key => this.load(key)));
+    return Promise.all(keys.map(key => this.load(key, loadOptions)));
   }
 
   /**
@@ -229,6 +234,8 @@ function dispatchQueue<K, V>(loader: DataLoader<K, V>) {
   // Take the current loader queue, replacing it with an empty queue.
   var queue = loader._queue;
   loader._queue = [];
+  var loadOptions = loader._loadOptions;
+  loader._loadOptions = {};
 
   // If a maxBatchSize was provided and the queue is longer, then segment the
   // queue into multiple batches, otherwise treat the queue as a single batch.
@@ -237,24 +244,26 @@ function dispatchQueue<K, V>(loader: DataLoader<K, V>) {
     for (var i = 0; i < queue.length / maxBatchSize; i++) {
       dispatchQueueBatch(
         loader,
-        queue.slice(i * maxBatchSize, (i + 1) * maxBatchSize)
+        queue.slice(i * maxBatchSize, (i + 1) * maxBatchSize),
+        loadOptions
       );
     }
   } else {
-    dispatchQueueBatch(loader, queue);
+    dispatchQueueBatch(loader, queue, loadOptions);
   }
 }
 
 function dispatchQueueBatch<K, V>(
   loader: DataLoader<K, V>,
-  queue: LoaderQueue<K, V>
+  queue: LoaderQueue<K, V>,
+  loadOptions: any
 ) {
   // Collect all keys to be loaded in this dispatch
   var keys = queue.map(({ key }) => key);
 
   // Call the provided batchLoadFn for this loader with the loader queue's keys.
   var batchLoadFn = loader._batchLoadFn;
-  var batchPromise = batchLoadFn(keys);
+  var batchPromise = batchLoadFn(keys, loadOptions);
 
   // Assert the expected response from batchLoadFn
   if (!batchPromise || typeof batchPromise.then !== 'function') {

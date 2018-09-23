@@ -36,7 +36,7 @@ this repository.
 First, install DataLoader using npm.
 
 ```sh
-npm install --save dataloader
+npm install --save @switchdog/dataloader
 ```
 
 To get started, create a `DataLoader`. Each `DataLoader` instance represents a
@@ -53,7 +53,7 @@ Batching is not an advanced feature, it's DataLoader's primary feature.
 Create loaders by providing a batch loading function.
 
 ```js
-var DataLoader = require('dataloader')
+var DataLoader = require('@switchdog/dataloader')
 
 var userLoader = new DataLoader(keys => myBatchGetUsers(keys));
 ```
@@ -121,6 +121,15 @@ with the original keys `[ 2, 9, 6, 1 ]`:
 ]
 ```
 
+#### Batch with loadOptions
+
+When you use `load`, you can pass key and loadOptions:
+
+```js
+var DataLoader = require('@switchdog/dataloader')
+
+var userLoader = new DataLoader((keys, loadOptions) => myBatchGetUsers((keys, loadOptions)));
+```
 
 ## Caching
 
@@ -283,7 +292,7 @@ Create a new `DataLoader` given a batch loading function and options.
   | ---------- | ---- | ------- | ----------- |
   | *batch*  | Boolean | `true` | Set to `false` to disable batching, invoking `batchLoadFn` with a single load key.
   | *maxBatchSize* | Number | `Infinity` | Limits the number of items that get passed in to the `batchLoadFn`.
-  | *cache* | Boolean | `true` | Set to `false` to disable memoization caching, creating a new Promise and new key in the `batchLoadFn` for every load of the same key. 
+  | *cache* | Boolean | `true` | Set to `false` to disable memoization caching, creating a new Promise and new key in the `batchLoadFn` for every load of the same key.
   | *cacheKeyFn* | Function | `key => key` | Produces cache key for a given load key. Useful when objects are keys and two objects should be considered equivalent.
   | *cacheMap* | Object | `new Map()` | Instance of [Map][] (or an object with a similar API) to be used as cache.
 

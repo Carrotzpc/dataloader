@@ -775,4 +775,22 @@ describe('It is resilient to job queue ordering', () => {
     expect(deepLoadCalls).to.deep.equal([ [ [ 'A1', 'A2' ], [ 'B1', 'B2' ] ] ]);
   });
 
+  it('can call a loader with loadOptions', async () => {
+    const keyLoadOptionsMap = {};
+    var batchLoadFn = (keys, loadOptions) => {
+      keyLoadOptionsMap[String(keys)] = loadOptions;
+      return Promise.resolve(keys);
+    };
+    var loader = new DataLoader(batchLoadFn);
+    var [ a1, b1 ] = await Promise.all([
+      loader.load('A1', { fields: [ 'A' ] }),
+      loader.load('B1', { fields: [ 'B' ] }),
+    ]);
+
+    expect(a1).to.equal('A1');
+    expect(b1).to.equal('B1');
+
+    expect(keyLoadOptionsMap['A1,B1']).to.deep.equal({ fields: [ 'B' ] });
+  });
+
 });

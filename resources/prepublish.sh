@@ -1,3 +1,7 @@
+#!/bin/sh
+
+set -e;
+
 # Because of a long-running npm issue (https://github.com/npm/npm/issues/3059)
 # prepublish runs after `npm install` and `npm pack`.
 # In order to only run prepublish before `npm publish`, we have to check argv.
@@ -9,12 +13,15 @@ fi
 # tests pass first and the deployed module contains the correct file structure.
 # In order to prevent inadvertently circumventing this, we ensure that a CI
 # environment exists before continuing.
-if [ "$CI" != true ]; then
-  echo "\n\n\n  \033[101;30m Only Travis CI can publish to NPM. \033[0m" 1>&2;
-  echo "  Ensure git is left is a good state by backing out any commits and deleting any tags." 1>&2;
-  echo "  Then read CONTRIBUTING.md to learn how to publish to NPM.\n\n\n" 1>&2;
-  exit 1;
-fi;
+# if [ "$CI" != true ]; then
+#   echo "\n\n\n  \033[101;30m Only Travis CI can publish to NPM. \033[0m" 1>&2;
+#   echo "  Ensure git is left is a good state by backing out any commits and deleting any tags." 1>&2;
+#   echo "  Then read CONTRIBUTING.md to learn how to publish to NPM.\n\n\n" 1>&2;
+#   exit 1;
+# fi;
+
+# lint before publishing
+npm run lint;
 
 # Build before publishing
 npm run build;
